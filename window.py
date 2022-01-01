@@ -12,7 +12,7 @@ class Window:
         pg.mouse.set_visible(False)
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
         self.background = pg.image.load("background.jpg")
-        self.background = pg.transform.scale(self.background, (WIDTH, 10*HEIGHT))
+        self.background = pg.transform.scale(self.background, (WIDTH, HEIGHT))
         self.background_x = 0
         self.background_y = 0
         self.background_y_speed = 1
@@ -33,11 +33,11 @@ class Window:
         while self.running:
             
             self.background_y += self.background_y_speed
-            if self.background_y == 10*HEIGHT:
+            if self.background_y == HEIGHT:
                 self.background_y = 0
             
             self.screen.blit(self.background, (self.background_x, self.background_y))
-            self.screen.blit(self.background, (0, self.background_y - 10*HEIGHT))
+            self.screen.blit(self.background, (0, self.background_y - HEIGHT))
 
             self.handle_events()
             self.constant_update_movements()
