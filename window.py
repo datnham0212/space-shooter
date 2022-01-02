@@ -21,7 +21,7 @@ class Window:
         self.running = True
 
         self.player = player.Player(self.screen)
-        
+
         self.enemies = []
         self.previous_spawn_time = 0
         self.enemy_cooldown = 2000
@@ -36,6 +36,7 @@ class Window:
         while self.running:
         
             self.handle_background()
+            self.check_collisions()
             self.handle_events()
             self.constant_update_movements()
             self.initialize_screen()
@@ -74,7 +75,7 @@ class Window:
     def generate_enemies(self):
         current_spawn_time = pg.time.get_ticks()
         r = random.Random() 
-        if current_spawn_time - self.previous_spawn_time >= self.enemy_cooldown:
+        if current_spawn_time - self.previous_spawn_time >= 2*self.enemy_cooldown:
             new_enemy = enemy.Enemy(self.screen, r.randrange(50,900))
             self.enemies.append(new_enemy)
             self.previous_spawn_time = current_spawn_time
@@ -87,9 +88,27 @@ class Window:
     
     def draw_enemies(self):
         for enemy in self.enemies:
-            enemy.draw()
+            # enemy.draw()
+            self.screen.blit(enemy.image, (enemy.x, enemy.y))
     
     def handle_shooting(self, keys):
         if keys[pg.K_z]:
             self.player.default_shot()
+
+    def check_collisions(self):
+        player_rect = pg.Rect(self.player.x, self.player.y, self.player.width, self.player.height)
+        for enemy in self.enemies:
+            enemy_rect = pg.Rect(enemy.x, enemy.y, enemy.width, enemy.height)
+            if player_rect.colliderect(enemy_rect):
+                print("Collision detected!")
+                # Handle collision (e.g., end game, reduce health, etc.)
+        
+        for laser in self.player.lasers:
+            laser_rect = pg.Rect(laser.x, laser.y, laser.width, laser.height)
+            for enemy in self.enemies:
+                enemy_rect = pg.Rect(enemy.x, enemy.y, enemy.width, enemy.height)
+                if laser_rect.colliderect(enemy_rect):
+                    print("Enemy hit!")
+                    # Handle hit (e.g., remove enemy, increase score, etc.)
+
     
