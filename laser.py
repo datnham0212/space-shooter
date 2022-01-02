@@ -5,8 +5,8 @@ class Laser:
         self.x = x
         self.y = y
         self.width = 5
-        self.height = 10
-        self.color = (255, 255, 255)
+        self.height = 25
+        self.color = (155,237,255)
         self.velocity = 7
     
     def draw(self, screen):

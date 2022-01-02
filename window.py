@@ -11,14 +11,17 @@ class Window:
         pg.init()
         pg.mouse.set_visible(False)
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
-        self.background = pg.image.load("background.jpg")
+        
+        self.background = pg.image.load("assets/background.jpg")
         self.background = pg.transform.scale(self.background, (WIDTH, HEIGHT))
         self.background_x = 0
         self.background_y = 0
         self.background_y_speed = 1
 
         self.running = True
+
         self.player = player.Player(self.screen)
+        
         self.enemies = []
         self.previous_spawn_time = 0
         self.enemy_cooldown = 2000
@@ -31,14 +34,8 @@ class Window:
         clock = pg.time.Clock()
 
         while self.running:
-            
-            self.background_y += self.background_y_speed
-            if self.background_y == HEIGHT:
-                self.background_y = 0
-            
-            self.screen.blit(self.background, (self.background_x, self.background_y))
-            self.screen.blit(self.background, (0, self.background_y - HEIGHT))
-
+        
+            self.handle_background()
             self.handle_events()
             self.constant_update_movements()
             self.initialize_screen()
@@ -46,7 +43,14 @@ class Window:
             clock.tick(60) # Ensure 60fps
         
         pg.quit()
+    
+    def handle_background(self):
+        self.background_y += self.background_y_speed
+        if self.background_y == HEIGHT:
+            self.background_y = 0
         
+        self.screen.blit(self.background, (self.background_x, self.background_y))
+        self.screen.blit(self.background, (0, self.background_y - HEIGHT))
     
     def handle_events(self):
         for event in pg.event.get():
@@ -62,6 +66,7 @@ class Window:
 
     def initialize_screen(self):
         # self.screen.fill((0, 0, 0))
+        self.screen.blit(self.player.image, (self.player.x, self.player.y))
         self.player.draw()
         self.generate_enemies()
         pg.display.update()
