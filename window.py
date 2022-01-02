@@ -108,6 +108,8 @@ class Window:
             for enemy in self.enemies:
                 enemy_rect = pg.Rect(enemy.x, enemy.y, enemy.width, enemy.height)
                 if laser_rect.colliderect(enemy_rect):
+                    self.enemies.remove(enemy)
+                    self.player.lasers.remove(laser)
                     print("Enemy hit!")
                     # Handle hit (e.g., remove enemy, increase score, etc.)
 
