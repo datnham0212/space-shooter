@@ -88,8 +88,7 @@ class Window:
     
     def draw_enemies(self):
         for enemy in self.enemies:
-            # enemy.draw()
-            self.screen.blit(enemy.image, (enemy.x, enemy.y))
+            enemy.draw(self.screen)
     
     def handle_shooting(self, keys):
         if keys[pg.K_z]:

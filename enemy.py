@@ -18,6 +18,9 @@ class Enemy:
         #     (self.x + self.width, self.y)
         # ]
         # pg.draw.polygon(self.screen, (255, 0, 0), points)
+    
+    def draw(self, screen):
+        screen.blit(self.image, (self.x, self.y))
 
     def move(self):
         self.y += self.velocity
