@@ -6,6 +6,31 @@ import random
 WIDTH = 960
 HEIGHT = 640
 
+class StartMenu:
+    def __init__(self, screen):
+        self.screen = screen
+        self.font = pg.font.Font(None, 50)
+        self.options = ["Start Game", "Options", "Quit"]
+        self.selected = 0
+
+    def draw(self):
+        self.screen.fill((0, 0, 0))
+        for i, option in enumerate(self.options):
+            color = (255, 255, 255) if i == self.selected else (100, 100, 100)
+            text = self.font.render(option, True, color)
+            rect = text.get_rect(center=(WIDTH//2, HEIGHT//2 + i * 60))
+            self.screen.blit(text, rect)
+
+    def handle_input(self, event):
+        if event.type == pg.KEYDOWN:
+            if event.key == pg.K_UP:
+                self.selected = (self.selected - 1) % len(self.options)
+            elif event.key == pg.K_DOWN:
+                self.selected = (self.selected + 1) % len(self.options)
+            elif event.key == pg.K_RETURN:
+                return self.options[self.selected]
+        return None
+
 class Window:
     def __init__(self):
         pg.init()
@@ -19,6 +44,8 @@ class Window:
         self.background_y_speed = 1
 
         self.running = True
+        self.in_menu = True
+        self.start_menu = StartMenu(self.screen)
 
         self.player = player.Player(self.screen)
 
@@ -34,16 +61,33 @@ class Window:
         clock = pg.time.Clock()
 
         while self.running:
-        
-            self.handle_background()
-            self.check_collisions()
-            self.handle_events()
-            self.constant_update_movements()
-            self.initialize_screen()
+            if self.in_menu:
+                self.handle_menu()
+            else:
+                self.handle_background()
+                self.check_collisions()
+                self.handle_events()
+                self.constant_update_movements()
+                self.initialize_screen()
 
             clock.tick(60) # Ensure 60fps
         
         pg.quit()
+    
+    def handle_menu(self):
+        self.start_menu.draw()
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                self.running = False
+            action = self.start_menu.handle_input(event)
+            if action == "Start Game":
+                self.in_menu = False
+            elif action == "Options":
+                print("Options menu not implemented yet")
+            elif action == "Quit":
+                self.running = False
+        pg.display.update()
+    
     
     def handle_background(self):
         self.background_y += self.background_y_speed
