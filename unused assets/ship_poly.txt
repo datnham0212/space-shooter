@@ -1,0 +1,17 @@
+Enemy:
+# def draw(self):
+        # points = [
+        #     (self.x + self.width / 2, self.y + self.height),
+        #     (self.x , self.y),
+        #     (self.x + self.width, self.y)
+        # ]
+        # pg.draw.polygon(self.screen, (255, 0, 0), points)
+
+
+Player:
+        # points = [
+        #     (self.x + self.width / 2, self.y),  # Top vertex
+        #     (self.x + self.width, self.y + self.height),  # Bottom-right vertex
+        #     (self.x , self.y + self.height)  # Bottom-left vertex
+        # ]
+        # pg.draw.polygon(self.screen, (255, 255, 255), points) 

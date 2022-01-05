@@ -111,7 +111,7 @@ class Window:
 
     def initialize_screen(self):
         # self.screen.fill((0, 0, 0))
-        self.screen.blit(self.player.image, (self.player.x, self.player.y))
+        self.screen.blit(self.player.shipImage, (self.player.x, self.player.y))
         self.player.draw()
         self.generate_enemies()
         pg.display.update()
@@ -131,8 +131,8 @@ class Window:
             enemy.move()
     
     def draw_enemies(self):
-        for enemy in self.enemies:
-            enemy.draw(self.screen)
+        for grunt1 in self.enemies:
+            grunt1.drawGrunt1(self.screen)
     
     def handle_shooting(self, keys):
         if keys[pg.K_z]:

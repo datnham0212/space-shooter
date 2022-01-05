@@ -6,7 +6,7 @@ class Player:
 
     def __init__(self, screen):
         self.screen = screen
-        self.image = pg.image.load("assets/player.png")
+        self.shipImage = pg.image.load("assets/player.png")
         self.x = 240
         self.y = 400
         self.velocity = 6
@@ -17,13 +17,6 @@ class Player:
         self.cooldown = 200
 
     def draw(self):
-        # points = [
-        #     (self.x + self.width / 2, self.y),  # Top vertex
-        #     (self.x + self.width, self.y + self.height),  # Bottom-right vertex
-        #     (self.x , self.y + self.height)  # Bottom-left vertex
-        # ]
-        # pg.draw.polygon(self.screen, (255, 255, 255), points) 
-
         #Constantly draw lasers
         for laser in self.lasers:
             laser.draw(self.screen)
