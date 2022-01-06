@@ -15,6 +15,7 @@ class Player:
         self.lasers = []
         self.last_time = 0
         self.cooldown = 200
+        self.lives = []
 
     def draw(self):
         #Constantly draw lasers
@@ -51,3 +52,11 @@ class Player:
             new_laser = laser.Laser(self.x + self.width / 2 - 2, self.y)  # Adjust x position for laser center
             self.lasers.append(new_laser)
             self.last_time = current_time
+
+    def generate_lives(self):
+        for i in range(3):
+            self.lives.append(pg.image.load("assets/heart.png"))
+        
+        self.screen.blit(self.lives[0], (10, 10))
+        self.screen.blit(self.lives[1], (50, 10))
+        self.screen.blit(self.lives[2], (90, 10))

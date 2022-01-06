@@ -112,6 +112,7 @@ class Window:
         # self.screen.fill((0, 0, 0))
         self.screen.blit(self.player.image, (self.player.x, self.player.y))
         self.player.draw()
+        self.player.generate_lives()
         self.generate_enemies()
         pg.display.update()
 
@@ -144,15 +145,16 @@ class Window:
         for enemy in self.enemies:
             enemy_rect = pg.Rect(enemy.x, enemy.y, enemy.width, enemy.height)
             if player_rect.colliderect(enemy_rect):
-                print("Collision detected!")
-                # Handle collision (e.g., end game, reduce health, etc.)
+                print("Player hit!")
+                # Handle hit (e.g., decrease health, play sound, etc.)
         
         for laser in self.player.lasers:
             laser_rect = pg.Rect(laser.x, laser.y, laser.width, laser.height)
             for enemy in self.enemies:
                 enemy_rect = pg.Rect(enemy.x, enemy.y, enemy.width, enemy.height)
                 if laser_rect.colliderect(enemy_rect):
-                    self.enemies.remove(enemy)
+                    if enemy.take_damage():
+                        self.enemies.remove(enemy)
                     self.player.lasers.remove(laser)
                     print("Enemy hit!")
                     # Handle hit (e.g., remove enemy, increase score, etc.)
