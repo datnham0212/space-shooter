@@ -6,7 +6,7 @@ class Player:
 
     def __init__(self, screen):
         self.screen = screen
-        self.shipImage = pg.image.load("assets/player.png")
+        self.image = pg.image.load("assets/player.png")
         self.x = 240
         self.y = 400
         self.velocity = 6

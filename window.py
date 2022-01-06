@@ -49,7 +49,7 @@ class Window:
 
         self.player = player.Player(self.screen)
 
-        self.enemies = []
+        self.enemies = []   
         self.previous_spawn_time = 0
         self.enemy_cooldown = 2000
 
@@ -102,7 +102,6 @@ class Window:
             if event.type == pg.QUIT:
                 self.running = False
 
-
     def constant_update_movements(self):
         keys = pg.key.get_pressed()
         self.player.move(keys)
@@ -118,9 +117,11 @@ class Window:
 
     def generate_enemies(self):
         current_spawn_time = pg.time.get_ticks()
-        r = random.Random() 
-        if current_spawn_time - self.previous_spawn_time >= 2*self.enemy_cooldown:
-            new_enemy = enemy.Enemy(self.screen, r.randrange(50,900))
+        if current_spawn_time - self.previous_spawn_time >= 1.5*self.enemy_cooldown:
+            if random.random() < 0.5:
+                new_enemy = enemy.Enemy(self.screen, random.randrange(50,900))
+            else:
+                new_enemy = enemy.Meteor(self.screen, random.randrange(50,900))
             self.enemies.append(new_enemy)
             self.previous_spawn_time = current_spawn_time
 
