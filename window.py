@@ -109,7 +109,6 @@ class Window:
         self.handle_shooting(keys)
 
     def initialize_screen(self):
-        # self.screen.fill((0, 0, 0))
         self.screen.blit(self.player.image, (self.player.x, self.player.y))
         self.player.draw()
         self.player.generate_lives()
@@ -146,6 +145,14 @@ class Window:
             enemy_rect = pg.Rect(enemy.x, enemy.y, enemy.width, enemy.height)
             if player_rect.colliderect(enemy_rect):
                 print("Player hit!")
+                self.player.max_lives -= 1
+                
+                if self.player.max_lives == 0:
+                    self.running = False
+                    print("Game Over")
+                
+                self.enemies.remove(enemy)
+                break
                 # Handle hit (e.g., decrease health, play sound, etc.)
         
         for laser in self.player.lasers:

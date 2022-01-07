@@ -15,6 +15,7 @@ class Player:
         self.lasers = []
         self.last_time = 0
         self.cooldown = 200
+        self.max_lives = 3
         self.lives = []
 
     def draw(self):
@@ -54,9 +55,11 @@ class Player:
             self.last_time = current_time
 
     def generate_lives(self):
-        for i in range(3):
+        self.lives.clear()
+        w = 10
+        for i in range(self.max_lives):
             self.lives.append(pg.image.load("assets/heart.png"))
+            self.screen.blit(self.lives[i], (w, 10))
+            w += 40
         
-        self.screen.blit(self.lives[0], (10, 10))
-        self.screen.blit(self.lives[1], (50, 10))
-        self.screen.blit(self.lives[2], (90, 10))
+        
