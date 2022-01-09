@@ -147,6 +147,10 @@ class Window:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.running = False
+            
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_ESCAPE:
+                    self.in_pause_menu = True
 
     def constant_update_movements(self):
         keys = pg.key.get_pressed()
