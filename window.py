@@ -73,6 +73,9 @@ class Window:
         self.in_start_menu = True
         self.start_menu = StartMenu(self.screen)
 
+        self.in_pause_menu = False
+        self.pause_menu = PauseMenu(self.screen)
+
         self.player = player.Player(self.screen)
 
         self.enemies = []   
@@ -89,6 +92,10 @@ class Window:
         while self.running:
             if self.in_start_menu:
                 self.handle_start_menu()
+
+            elif self.in_pause_menu:
+                self.handle_pause_menu()
+            
             else:
                 self.handle_background()
                 self.check_collisions()
@@ -112,6 +119,19 @@ class Window:
                 print("Options menu not implemented yet")
             elif action == "Quit":
                 self.running = False
+        pg.display.update()
+    
+    def handle_pause_menu(self):
+        self.pause_menu.draw()
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                self.running = False
+            action = self.pause_menu.handle_input(event)
+            if action == "Resume Game":
+                self.in_pause_menu = False
+            elif action == "Return to Start Menu":
+                self.in_pause_menu = False
+                self.in_start_menu = True
         pg.display.update()
     
     
