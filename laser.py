@@ -14,3 +14,6 @@ class Laser:
 
     def move(self):
         self.y -= self.velocity
+    
+    def enemy_laser_move(self):
+        self.y += self.velocity

@@ -169,10 +169,10 @@ class Window:
     def generate_enemies(self):
         current_spawn_time = pg.time.get_ticks()
         if current_spawn_time - self.previous_spawn_time >= 1.5*self.enemy_cooldown:
-            if random.random() < 0.5:
-                new_enemy = enemy.Enemy(self.screen, random.randrange(50,900))
-            else:
-                new_enemy = enemy.Meteor(self.screen, random.randrange(50,900))
+            # if random.random() < 0.5:
+            new_enemy = enemy.Enemy(self.screen, random.randrange(50,900))
+            # else:
+                # new_enemy = enemy.Meteor(self.screen, random.randrange(50,900))
             self.enemies.append(new_enemy)
             self.previous_spawn_time = current_spawn_time
 
@@ -189,23 +189,40 @@ class Window:
     def handle_shooting(self, keys):
         if keys[pg.K_z]:
             self.player.default_shot()
+        
+        for enemy in self.enemies:
+            enemy.enemy_shoot()
 
     def check_collisions(self):
+        #Player being hit by enemy
         player_rect = pg.Rect(self.player.x, self.player.y, self.player.width, self.player.height)
         for enemy in self.enemies:
             enemy_rect = pg.Rect(enemy.x, enemy.y, enemy.width, enemy.height)
             if player_rect.colliderect(enemy_rect):
-                print("Player hit!")
                 self.player.max_lives -= 1
                 
                 if self.player.max_lives == 0:
                     self.running = False
-                    print("Game Over")
                 
                 self.enemies.remove(enemy)
                 break
-                # Handle hit (e.g., decrease health, play sound, etc.)
+                # Handle hit (e.g. play sound, etc.)
         
+        #Player being hit by enemy's laser
+        for enemy in self.enemies:
+            for laser in enemy.lasers:
+                laser_rect = pg.Rect(laser.x, laser.y, laser.width, laser.height)
+                if player_rect.colliderect(laser_rect):
+                    self.player.max_lives -= 1
+                    enemy.lasers.remove(laser)
+                    
+                    if self.player.max_lives == 0:
+                        self.running = False
+                        print("Game Over")
+                    
+                    break
+
+        #Enemy being hit
         for laser in self.player.lasers:
             laser_rect = pg.Rect(laser.x, laser.y, laser.width, laser.height)
             for enemy in self.enemies:
@@ -215,7 +232,6 @@ class Window:
                         self.enemies.remove(enemy)
                         self.player.scores += 100
                     self.player.lasers.remove(laser)
-                    # print("Enemy hit!")
-                    # Handle hit (e.g., remove enemy, increase score, etc.)
+                    
 
     
