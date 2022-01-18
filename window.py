@@ -162,6 +162,7 @@ class Window:
         self.screen.blit(self.player.image, (self.player.x, self.player.y))
         self.player.draw()
         self.player.generate_lives()
+        self.player.increase_scores()
         self.generate_enemies()
         pg.display.update()
 
@@ -212,8 +213,9 @@ class Window:
                 if laser_rect.colliderect(enemy_rect):
                     if enemy.take_damage():
                         self.enemies.remove(enemy)
+                        self.player.scores += 100
                     self.player.lasers.remove(laser)
-                    print("Enemy hit!")
+                    # print("Enemy hit!")
                     # Handle hit (e.g., remove enemy, increase score, etc.)
 
     

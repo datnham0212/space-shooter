@@ -17,6 +17,7 @@ class Player:
         self.cooldown = 200
         self.max_lives = 3
         self.lives = []
+        self.scores = 0
 
     def draw(self):
         #Constantly draw lasers
@@ -56,10 +57,14 @@ class Player:
 
     def generate_lives(self):
         self.lives.clear()
-        w = 10
+        margin = 10
         for i in range(self.max_lives):
             self.lives.append(pg.image.load("assets/heart.png"))
-            self.screen.blit(self.lives[i], (w, 10))
-            w += 40
-        
+            self.screen.blit(self.lives[i], (margin, 10))
+            margin += 40
+    
+    def increase_scores(self):
+        font = pg.font.Font(None, 36)
+        text = font.render(f"Scores: {self.scores}", True, (255, 255, 255))
+        self.screen.blit(text, (int(window.WIDTH/2)-50, 10))
         
