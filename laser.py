@@ -16,4 +16,5 @@ class Laser:
         self.y -= self.velocity
     
     def enemy_laser_move(self):
+        self.color = (255, 227, 155)
         self.y += self.velocity

@@ -1,6 +1,7 @@
 import pygame as pg
 import laser
 import window
+import random
 
 class Enemy:
     def __init__(self, screen, x):
@@ -14,7 +15,8 @@ class Enemy:
         self.damage = 0
         self.lasers = []
         self.last_time = 0
-        self.cooldown = 1200
+        self.cooldown = random.randint(500, 2000)
+        self.spawn_time = pg.time.get_ticks()
     
     def draw(self, screen):
         screen.blit(self.image, (self.x, self.y))
@@ -34,11 +36,16 @@ class Enemy:
         #Return the current time since running the program
         current_time = pg.time.get_ticks()
         
+        delay = random.randint(200, 3000)
+        if current_time - self.spawn_time < delay:
+            return
+
         #If the time since the last laser is greater than the cooldown, shoot a new laser
         if current_time - self.last_time >= self.cooldown:
             new_laser = laser.Laser(self.x + self.width / 2 - 2, self.y + self.height)  # Adjust x position for laser center
             self.lasers.append(new_laser)
             self.last_time = current_time
+            self.cooldown = random.randint(500, 2000)
 
     def take_damage(self):
         self.damage += 1
