@@ -79,6 +79,7 @@ class Window:
         self.player = player.Player(self.screen)
 
         self.enemies = []   
+        self.meteors = []
         self.previous_spawn_time = 0
         self.enemy_cooldown = 2000
 
@@ -169,11 +170,12 @@ class Window:
     def generate_enemies(self):
         current_spawn_time = pg.time.get_ticks()
         if current_spawn_time - self.previous_spawn_time >= 1.5*self.enemy_cooldown:
-            # if random.random() < 0.5:
-            new_enemy = enemy.Enemy(self.screen, random.randrange(50,900))
-            # else:
-                # new_enemy = enemy.Meteor(self.screen, random.randrange(50,900))
-            self.enemies.append(new_enemy)
+            if random.random() < 0.5:
+                new_enemy = enemy.Enemy(self.screen, random.randrange(50,900))
+                self.enemies.append(new_enemy)
+            else:
+                new_meteors = enemy.Meteor(self.screen, random.randrange(50,900))
+                self.meteors.append(new_meteors)
             self.previous_spawn_time = current_spawn_time
 
         self.draw_enemies()
@@ -181,10 +183,16 @@ class Window:
     def move_enemies(self):
         for enemy in self.enemies:
             enemy.move()
-    
+        
+        for meteor in self.meteors:
+            meteor.move()
+
     def draw_enemies(self):
         for enemy in self.enemies:
             enemy.draw(self.screen)
+
+        for meteor in self.meteors:
+            meteor.draw(self.screen)
     
     def handle_shooting(self, keys):
         if keys[pg.K_z]:
@@ -207,6 +215,19 @@ class Window:
                 self.enemies.remove(enemy)
                 break
                 # Handle hit (e.g. play sound, etc.)
+        
+        #Player being hit by meteor
+        for meteor in self.meteors:
+            meteor_rect = pg.Rect(meteor.x, meteor.y, meteor.width, meteor.height)
+            if player_rect.colliderect(meteor_rect):
+                self.player.max_lives -= 1
+                
+                if self.player.max_lives == 0:
+                    self.running = False
+                
+                self.enemies.remove(enemy)
+                break
+                
         
         #Player being hit by enemy's laser
         for enemy in self.enemies:
@@ -232,6 +253,16 @@ class Window:
                         self.enemies.remove(enemy)
                         self.player.scores += 100
                     self.player.lasers.remove(laser)
-                    
+        
+        #Meteor being hit by player's laser
+        for laser in self.player.lasers:
+            laser_rect = pg.Rect(laser.x, laser.y, laser.width, laser.height)
+            for meteor in self.meteors:
+                meteor_rect = pg.Rect(meteor.x, meteor.y, meteor.width, meteor.height)
+                if laser_rect.colliderect(meteor_rect):
+                    if meteor.take_damage():
+                        self.meteors.remove(meteor)
+                        self.player.scores += 100
+                    self.player.lasers.remove(laser)
 
     
