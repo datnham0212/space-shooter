@@ -1,61 +1,11 @@
 import pygame as pg
+import menu
 import player 
 import enemy
 import random
 
 WIDTH = 960
 HEIGHT = 640
-
-class StartMenu:
-    def __init__(self, screen):
-        self.screen = screen
-        self.font = pg.font.Font(None, 50)
-        self.options = ["Start Game", "Options", "Quit"]
-        self.selected = 0
-
-    def draw(self):
-        self.screen.fill((0, 0, 0))
-        for i, option in enumerate(self.options):
-            color = (255, 255, 255) if i == self.selected else (100, 100, 100)
-            text = self.font.render(option, True, color)
-            rect = text.get_rect(center=(WIDTH//2, HEIGHT//2 + i * 60))
-            self.screen.blit(text, rect)
-
-    def handle_input(self, event):
-        if event.type == pg.KEYDOWN:
-            if event.key == pg.K_UP:
-                self.selected = (self.selected - 1) % len(self.options)
-            elif event.key == pg.K_DOWN:
-                self.selected = (self.selected + 1) % len(self.options)
-            elif event.key == pg.K_RETURN:
-                return self.options[self.selected]
-        return None
-
-class PauseMenu:
-    def __init__(self, screen):
-        self.screen = screen
-        self.font = pg.font.Font(None, 50)
-        self.options =["Resume Game", "Return to Start Menu"]
-        self.selected = 0
-    
-    def draw(self):
-        self.screen.fill((0, 0, 0))
-        for i, option in enumerate(self.options):
-            color = (255, 255, 255) if i == self.selected else (100, 100, 100)
-            text = self.font.render(option, True, color)
-            rect = text.get_rect(center=(WIDTH//2, HEIGHT//2 + i * 60))
-            self.screen.blit(text, rect)
-
-    def handle_input(self, event):
-        if event.type == pg.KEYDOWN:
-            if event.key == pg.K_UP:
-                self.selected = (self.selected - 1) % len(self.options)
-            elif event.key == pg.K_DOWN:
-                self.selected = (self.selected + 1) % len(self.options)
-            elif event.key == pg.K_RETURN:
-                return self.options[self.selected]
-        return None
-
 
 class Window:
     def __init__(self):
@@ -71,10 +21,13 @@ class Window:
 
         self.running = True
         self.in_start_menu = True
-        self.start_menu = StartMenu(self.screen)
+        self.start_menu = menu.StartMenu(self.screen)
 
         self.in_pause_menu = False
-        self.pause_menu = PauseMenu(self.screen)
+        self.pause_menu = menu.PauseMenu(self.screen)
+
+        self.in_options_menu = False
+        self.options_menu = menu.OptionsMenu(self.screen)
 
         self.player = player.Player(self.screen)
 
@@ -97,6 +50,9 @@ class Window:
             elif self.in_pause_menu:
                 self.handle_pause_menu()
             
+            elif self.in_options_menu:
+                self.handle_options_menu()
+            
             else:
                 self.handle_background()
                 self.check_collisions()
@@ -117,7 +73,8 @@ class Window:
             if action == "Start Game":
                 self.in_start_menu = False
             elif action == "Options":
-                print("Options menu not implemented yet")
+                self.in_start_menu = False
+                self.in_options_menu = True
             elif action == "Quit":
                 self.running = False
         pg.display.update()
@@ -134,6 +91,18 @@ class Window:
                 self.in_pause_menu = False
                 self.in_start_menu = True
         pg.display.update()
+
+    def handle_options_menu(self):
+        self.options_menu.draw()
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                self.running = False
+            action = self.options_menu.handle_input(event)
+            if action == "Return to Start Menu":
+                self.in_options_menu = False
+                self.in_start_menu = True
+        pg.display.update()
+
     
     
     def handle_background(self):
@@ -150,7 +119,7 @@ class Window:
                 self.running = False
             
             if event.type == pg.KEYDOWN:
-                if event.key == pg.K_ESCAPE:
+                if event.key == pg.K_RETURN:
                     self.in_pause_menu = True
 
     def constant_update_movements(self):
