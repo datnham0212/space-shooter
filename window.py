@@ -28,12 +28,19 @@ class Window:
 
         self.in_options_menu = False
         self.options_menu = menu.OptionsMenu(self.screen)
+        self.in_sound_menu = False
+        self.sound_menu = menu.SoundMenu(self.screen)
+        self.in_controls_menu = False
+        self.controls_menu = menu.ControlsMenu(self.screen)
+        self.in_difficulty_menu = False
+        self.difficulty_menu = menu.DifficultyMenu(self.screen)
 
+        #Can be used for resetting the game
         self.player = player.Player(self.screen)
-
         self.enemies = []   
         self.meteors = []
         self.previous_spawn_time = 0
+
         self.enemy_cooldown = 2000
 
         pg.display.set_caption("Space Shooter")
@@ -52,6 +59,15 @@ class Window:
             
             elif self.in_options_menu:
                 self.handle_options_menu()
+            
+            elif self.in_sound_menu:
+                self.handle_sound_menu()
+
+            elif self.in_controls_menu:
+                self.handle_controls_menu()
+
+            elif self.in_difficulty_menu:
+                self.handle_difficulty_menu()
             
             else:
                 self.handle_background()
@@ -88,9 +104,16 @@ class Window:
             if action == "Resume Game":
                 self.in_pause_menu = False
             elif action == "Return to Start Menu":
+                self.reset_game()
                 self.in_pause_menu = False
                 self.in_start_menu = True
         pg.display.update()
+
+    def reset_game(self):
+        self.player = player.Player(self.screen)
+        self.enemies = []
+        self.meteors = []
+        self.previous_spawn_time = 0
 
     def handle_options_menu(self):
         self.options_menu.draw()
@@ -101,9 +124,53 @@ class Window:
             if action == "Return to Start Menu":
                 self.in_options_menu = False
                 self.in_start_menu = True
+            
+            elif action == "Sound":
+                self.in_options_menu = False
+                self.in_sound_menu = True
+            
+            elif action == "Controls":
+                self.in_options_menu = False
+                self.in_controls_menu = True
+
+            elif action == "Difficulty":
+                self.in_options_menu = False
+                self.in_difficulty_menu = True
+
         pg.display.update()
 
-    
+    def handle_sound_menu(self):
+        self.sound_menu.draw()
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                self.running = False
+            action = self.sound_menu.handle_input(event)
+            if action == "Return to Options":
+                self.in_sound_menu = False
+                self.in_options_menu = True
+        pg.display.update()
+
+    def handle_controls_menu(self):
+        self.controls_menu.draw()
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                self.running = False
+            action = self.controls_menu.handle_input(event)
+            if action == "Return to Options":
+                self.in_controls_menu = False
+                self.in_options_menu = True
+        pg.display.update()
+
+    def handle_difficulty_menu(self):
+            self.difficulty_menu.draw()
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    self.running = False
+                action = self.difficulty_menu.handle_input(event)
+                if action == "Return to Options":
+                    self.in_difficulty_menu = False
+                    self.in_options_menu = True
+            pg.display.update()
     
     def handle_background(self):
         self.background_y += self.background_y_speed
@@ -233,5 +300,3 @@ class Window:
                         self.meteors.remove(meteor)
                         self.player.scores += 100
                     self.player.lasers.remove(laser)
-
-    
