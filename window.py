@@ -2,7 +2,6 @@ import pygame as pg
 import menu
 import player 
 import enemy
-import random
 import collisions_handling
 
 WIDTH = 960
