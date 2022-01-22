@@ -20,6 +20,9 @@ class Window:
         self.background_y = 0
         self.background_y_speed = 1
 
+        self.player = player.Player(self.screen)
+        self.enemy_manager = enemy.ManageEnemies(self.screen)
+
         self.running = True
         self.in_start_menu = True
         self.start_menu = menu.StartMenu(self.screen)
@@ -35,14 +38,6 @@ class Window:
         self.controls_menu = menu.ControlsMenu(self.screen)
         self.in_difficulty_menu = False
         self.difficulty_menu = menu.DifficultyMenu(self.screen)
-
-        #Can be used for resetting the game
-        self.player = player.Player(self.screen)
-        self.enemies = []   
-        self.meteors = []
-        self.previous_spawn_time = 0
-
-        self.enemy_cooldown = 2000
 
         pg.display.set_caption("Space Shooter")
 
@@ -71,8 +66,10 @@ class Window:
                 self.handle_difficulty_menu()
             
             else:
+                if not collisions_handling.check_collisions(self.player, self.enemy_manager.enemies, self.enemy_manager.meteors):
+                    self.running = False  # Stop the game if collisions handling indicates game over
+                
                 self.handle_background()
-                collisions_handling.check_collisions(self)
                 self.handle_events()
                 self.constant_update_movements()
                 self.initialize_screen()
@@ -193,7 +190,7 @@ class Window:
     def constant_update_movements(self):
         keys = pg.key.get_pressed()
         self.player.move(keys)
-        self.move_enemies()
+        self.enemy_manager.move_enemies()
         self.handle_shooting(keys)
 
     def initialize_screen(self):
@@ -201,41 +198,15 @@ class Window:
         self.player.draw()
         self.player.generate_lives()
         self.player.increase_scores()
-        self.generate_enemies()
+        self.enemy_manager.generate_enemies()  # Use enemy manager to generate enemies
+        self.enemy_manager.draw_enemies()  # Use enemy manager to draw enemies
         pg.display.update()
-
-    def generate_enemies(self):
-        current_spawn_time = pg.time.get_ticks()
-        if current_spawn_time - self.previous_spawn_time >= 1.5*self.enemy_cooldown:
-            if random.random() < 0.5:
-                new_enemy = enemy.Enemy(self.screen, random.randrange(50,900))
-                self.enemies.append(new_enemy)
-            else:
-                new_meteors = enemy.Meteor(self.screen, random.randrange(50,900))
-                self.meteors.append(new_meteors)
-            self.previous_spawn_time = current_spawn_time
-
-        self.draw_enemies()
-    
-    def move_enemies(self):
-        for enemy in self.enemies:
-            enemy.move()
-        
-        for meteor in self.meteors:
-            meteor.move()
-
-    def draw_enemies(self):
-        for enemy in self.enemies:
-            enemy.draw(self.screen)
-
-        for meteor in self.meteors:
-            meteor.draw(self.screen)
     
     def handle_shooting(self, keys):
         if keys[pg.K_z]:
             self.player.default_shot()
         
-        for enemy in self.enemies:
+        for enemy in self.enemy_manager.enemies:
             enemy.enemy_shoot()
 
     

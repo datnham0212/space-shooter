@@ -75,3 +75,36 @@ class Meteor:
         if self.damage >= 5:
             return True 
         return False
+
+class ManageEnemies:
+    def __init__(self, screen):
+        self.screen = screen
+        self.enemies = []
+        self.meteors = []
+        self.previous_spawn_time = 0
+        self.enemy_cooldown = 2000
+
+    def generate_enemies(self):
+        current_spawn_time = pg.time.get_ticks()
+        if current_spawn_time - self.previous_spawn_time >= 1.5 * self.enemy_cooldown:
+            if random.random() < 0.5:
+                new_enemy = Enemy(self.screen, random.randrange(50, 900))
+                self.enemies.append(new_enemy)
+            else:
+                new_meteor = Meteor(self.screen, random.randrange(50, 900))
+                self.meteors.append(new_meteor)
+            self.previous_spawn_time = current_spawn_time
+
+    def move_enemies(self):
+        for enemy in self.enemies:
+            enemy.move()
+        for meteor in self.meteors:
+            meteor.move()
+
+    def draw_enemies(self):
+        for enemy in self.enemies:
+            enemy.draw(self.screen)
+        for meteor in self.meteors:
+            meteor.draw(self.screen)
+
+            
