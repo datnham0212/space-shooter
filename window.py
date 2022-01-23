@@ -42,132 +42,88 @@ class Window:
 
         self.run()
     
+    def handle_menu(self, menu_type):
+        menu_map = {
+            "start": self.start_menu,
+            "pause": self.pause_menu,
+            "options": self.options_menu,
+            "sound": self.sound_menu,
+            "controls": self.controls_menu,
+            "difficulty": self.difficulty_menu
+        }
+        menu = menu_map[menu_type]
+        menu.draw()
+        
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                self.running = False
+            action = menu.handle_input(event)
+            
+            if menu_type == "start":
+                if action == "Start Game":
+                    self.in_start_menu = False
+                elif action == "Options":
+                    self.in_start_menu = False
+                    self.in_options_menu = True
+                elif action == "Quit":
+                    self.running = False
+                    
+            elif menu_type == "pause":
+                if action == "Resume Game":
+                    self.in_pause_menu = False
+                elif action == "Return to Start Menu":
+                    self.reset_game()
+                    self.in_pause_menu = False
+                    self.in_start_menu = True
+            
+            elif menu_type == "options":
+                if action == "Return to Start Menu":
+                    self.in_options_menu = False
+                    self.in_start_menu = True
+                elif action in ["Sound", "Controls", "Difficulty"]:
+                    self.in_options_menu = False
+                    setattr(self, f'in_{action.lower()}_menu', True)
+
+            elif menu_type in ["sound", "controls", "difficulty"]:
+                if action == "Return to Options":
+                    setattr(self, f'in_{menu_type}_menu', False)
+                    self.in_options_menu = True
+
+        pg.display.update()
+    
     def run(self):
         clock = pg.time.Clock()
-
         while self.running:
             if self.in_start_menu:
-                self.handle_start_menu()
-
+                self.handle_menu("start")
             elif self.in_pause_menu:
-                self.handle_pause_menu()
-            
+                self.handle_menu("pause")
             elif self.in_options_menu:
-                self.handle_options_menu()
-            
+                self.handle_menu("options")
             elif self.in_sound_menu:
-                self.handle_sound_menu()
-
+                self.handle_menu("sound")
             elif self.in_controls_menu:
-                self.handle_controls_menu()
-
+                self.handle_menu("controls")
             elif self.in_difficulty_menu:
-                self.handle_difficulty_menu()
-            
+                self.handle_menu("difficulty")
             else:
                 if not collisions_handling.check_collisions(self.player, self.enemy_manager.enemies, self.enemy_manager.meteors):
-                    self.running = False  # Stop the game if collisions handling indicates game over
+                    self.running = False
                 
                 self.handle_background()
                 self.handle_events()
                 self.constant_update_movements()
                 self.initialize_screen()
 
-            clock.tick(60) # Ensure 60fps
-        
+            clock.tick(60)  # Ensure 60fps
         pg.quit()
     
-    def handle_start_menu(self):
-        self.start_menu.draw()
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                self.running = False
-            action = self.start_menu.handle_input(event)
-            if action == "Start Game":
-                self.in_start_menu = False
-            elif action == "Options":
-                self.in_start_menu = False
-                self.in_options_menu = True
-            elif action == "Quit":
-                self.running = False
-        pg.display.update()
-    
-    def handle_pause_menu(self):
-        self.pause_menu.draw()
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                self.running = False
-            action = self.pause_menu.handle_input(event)
-            if action == "Resume Game":
-                self.in_pause_menu = False
-            elif action == "Return to Start Menu":
-                self.reset_game()
-                self.in_pause_menu = False
-                self.in_start_menu = True
-        pg.display.update()
 
     def reset_game(self):
         self.player = player.Player(self.screen)
         self.enemies = []
         self.meteors = []
         self.previous_spawn_time = 0
-
-    def handle_options_menu(self):
-        self.options_menu.draw()
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                self.running = False
-            action = self.options_menu.handle_input(event)
-            if action == "Return to Start Menu":
-                self.in_options_menu = False
-                self.in_start_menu = True
-            
-            elif action == "Sound":
-                self.in_options_menu = False
-                self.in_sound_menu = True
-            
-            elif action == "Controls":
-                self.in_options_menu = False
-                self.in_controls_menu = True
-
-            elif action == "Difficulty":
-                self.in_options_menu = False
-                self.in_difficulty_menu = True
-
-        pg.display.update()
-
-    def handle_sound_menu(self):
-        self.sound_menu.draw()
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                self.running = False
-            action = self.sound_menu.handle_input(event)
-            if action == "Return to Options":
-                self.in_sound_menu = False
-                self.in_options_menu = True
-        pg.display.update()
-
-    def handle_controls_menu(self):
-        self.controls_menu.draw()
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                self.running = False
-            action = self.controls_menu.handle_input(event)
-            if action == "Return to Options":
-                self.in_controls_menu = False
-                self.in_options_menu = True
-        pg.display.update()
-
-    def handle_difficulty_menu(self):
-            self.difficulty_menu.draw()
-            for event in pg.event.get():
-                if event.type == pg.QUIT:
-                    self.running = False
-                action = self.difficulty_menu.handle_input(event)
-                if action == "Return to Options":
-                    self.in_difficulty_menu = False
-                    self.in_options_menu = True
-            pg.display.update()
     
     def handle_background(self):
         self.background_y += self.background_y_speed
