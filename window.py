@@ -4,8 +4,11 @@ import player
 import enemy
 import collisions_handling
 
+from pygame import mixer
+
 WIDTH = 960
 HEIGHT = 640
+
 
 class Window:
     def __init__(self):
@@ -132,6 +135,11 @@ class Window:
         
         self.screen.blit(self.background, (self.background_x, self.background_y))
         self.screen.blit(self.background, (0, self.background_y - HEIGHT))
+
+    def play_sounds(self, audio):
+        mixer.init()
+        mixer.music.load(audio)
+        mixer.music.play()
     
     def handle_events(self):
         for event in pg.event.get():
@@ -160,6 +168,7 @@ class Window:
     def handle_shooting(self, keys):
         if keys[pg.K_z]:
             self.player.default_shot()
+            self.play_sounds('sounds/laser.mp3')
         
         for enemy in self.enemy_manager.enemies:
             enemy.enemy_shoot()
