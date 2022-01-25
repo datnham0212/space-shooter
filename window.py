@@ -74,13 +74,13 @@ class Window:
             elif menu_type == "pause":
                 if action == "Resume Game":
                     self.in_pause_menu = False
-                elif action == "Return to Start Menu":
+                elif action == "Back to Start Menu":
                     self.reset_game()
                     self.in_pause_menu = False
                     self.in_start_menu = True
             
             elif menu_type == "options":
-                if action == "Return to Start Menu":
+                if action == "Back to Start Menu":
                     self.in_options_menu = False
                     self.in_start_menu = True
                 elif action in ["Sound", "Controls", "Difficulty"]:
@@ -88,11 +88,14 @@ class Window:
                     setattr(self, f'in_{action.lower()}_menu', True)
 
             elif menu_type in ["sound", "controls", "difficulty"]:
-                if action == "Return to Options":
+                if action == "Return":
                     setattr(self, f'in_{menu_type}_menu', False)
                     self.in_options_menu = True
-
+                elif menu_type == "difficulty" and action is not None:
+                    self.selected_difficulty = action.split(": ")[-1]  # Extract the selected difficulty
+        
         pg.display.update()
+
     
     def run(self):
         clock = pg.time.Clock()
@@ -124,9 +127,16 @@ class Window:
 
     def reset_game(self):
         self.player = player.Player(self.screen)
-        self.enemies = []
-        self.meteors = []
-        self.previous_spawn_time = 0
+        self.enemy_manager = enemy.ManageEnemies(self.screen)  # Reset enemies
+        self.in_pause_menu = False
+        self.in_options_menu = False
+        self.in_sound_menu = False
+        self.in_controls_menu = False
+        self.in_difficulty_menu = False
+        self.in_start_menu = True
+        self.running = True  # Ensure the game is set to running
+
+
     
     def handle_background(self):
         self.background_y += self.background_y_speed
@@ -172,5 +182,3 @@ class Window:
         
         for enemy in self.enemy_manager.enemies:
             enemy.enemy_shoot()
-
-    

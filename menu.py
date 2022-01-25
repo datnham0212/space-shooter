@@ -33,20 +33,69 @@ class StartMenu(Menu):
 
 class PauseMenu(Menu):
     def __init__(self, screen):
-        super().__init__(screen, ["Resume Game", "Return to Start Menu"])
+        super().__init__(screen, ["Resume Game", "Back to Start Menu"])
         
 class OptionsMenu(Menu):
     def __init__(self, screen):
-        super().__init__(screen, ["Sound", "Controls", "Difficulty", "Return to Start Menu"], custom_height=50)
+        super().__init__(screen, ["Sound", "Controls", "Difficulty", "Back to Start Menu"], custom_height=50)
 
 class SoundMenu(Menu):
     def __init__(self, screen):
-        super().__init__(screen, ["Volume: ", "Sound(On/Off): ", "Return to Options"])
+        self.sound_options = ['On', 'Off']
+        self.volume_options = list(range(0, 101))
+        self.sound_index = 0
+        self.volume_index = 50  # Default volume
+        super().__init__(screen, [f"Volume: {self.volume_index}", f"Sound: {self.sound_options[self.sound_index]}", "Return"])
+
+    def handle_input(self, event):
+        result = super().handle_input(event)
+
+        if result is not None:
+            return result
+
+        if event.type == pg.KEYDOWN:
+            if event.key == pg.K_LEFT or event.key == pg.K_RIGHT:
+                if self.selected == 0:  # Adjust volume
+                    self.volume_index = (self.volume_index + (1 if event.key == pg.K_RIGHT else -1)) % len(self.volume_options)
+                    self.options[0] = f"Volume: {self.volume_options[self.volume_index]}"
+                elif self.selected == 1:  # Toggle sound on/off
+                    self.sound_index = (self.sound_index + (1 if event.key == pg.K_RIGHT else -1)) % len(self.sound_options)
+                    self.options[1] = f"Sound: {self.sound_options[self.sound_index]}"
+        return None
+
 
 class ControlsMenu(Menu):
     def __init__(self, screen):
-        super().__init__(screen, ["Up: ", "Down: ", "Left: ", "Right: ", "Shoot: ", "Pause: ", "Return to Options"], custom_height=150)
+        super().__init__(screen, ["Up: ", "Down: ", "Left: ", "Right: ", "Shoot: ", "Pause: ", "Return"], custom_height=150)
 
 class DifficultyMenu(Menu):
     def __init__(self, screen):
-        super().__init__(screen, ["Set Difficulty: ", "Return to Options"])
+        self.diff_options = ['Normal', 'Hard']
+        self.index = 0  # Initialize index to 0
+        super().__init__(screen, [f"Set Difficulty: {self.diff_options[self.index]}", "Return"])
+    
+    def handle_input(self, event):
+        # Call the base class method for up/down navigation and return option selection
+        result = super().handle_input(event)
+        if result is not None:
+            return result  # Return the selected option
+
+        # Handle left and right arrow keys for difficulty selection
+        if event.type == pg.KEYDOWN:
+            if event.key == pg.K_LEFT:  # Left arrow key
+                self.index = (self.index - 1) % len(self.diff_options)  # Loop back
+                self.update_diff_text()
+            elif event.key == pg.K_RIGHT:  # Right arrow key
+                self.index = (self.index + 1) % len(self.diff_options)  # Loop forward
+                self.update_diff_text()
+        return None
+    
+    def update_diff_text(self):
+        self.options[0] = f"Set Difficulty: {self.diff_options[self.index]}"
+    
+    
+
+            
+
+    
+    
