@@ -1,0 +1,8 @@
+{
+    "Up": "K_UP",
+    "Down": "K_DOWN",
+    "Left": "K_LEFT",
+    "Right": "K_RIGHT",
+    "Shoot": "K_z",
+    "Pause": "K_RETURN"
+}
