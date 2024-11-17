@@ -1,3 +1,4 @@
+import random
 import pygame as pg
 import time
 from enemy import BossEnemy
@@ -65,8 +66,10 @@ def check_collisions(player, enemies, meteors, enemy_lasers, pickup_manager):
                 points, remove_enemy = enemy.take_damage()
                 if points:
                     player.scores += points
+                    # Randomly choose between extra_lives and triple_shot
+                    pickup_type = "extra_lives" if random.random() < 0.5 else "triple_shot"
                     # Create a pickup at the enemy's position
-                    pickup_manager.create_pickup(enemy.x, enemy.y, "extra_lives")
+                    pickup_manager.create_pickup(enemy.x, enemy.y, pickup_type)
                 if remove_enemy:
                     enemies.remove(enemy)
                 player.lasers.remove(laser)

@@ -19,6 +19,8 @@ class Player:
         self.lasers = []
         self.last_time = 0
         self.cooldown = 200
+        self.triple_shot = False
+        self.triple_shot_ammo = 0
         self.max_lives = 3
         self.lives = []
         self.scores = 0
@@ -27,6 +29,7 @@ class Player:
         self.damage_sound = pg.mixer.Sound("sounds/damage_taken.mp3")  # Load the damage sound
         self.damage_sound.set_volume(window.sound_settings['volume'] / 100.0 if window.sound_settings["sound_on"] else 0)
         self.key_bindings = self.load_key_bindings()
+        self.font = pg.font.Font(None, 36)  # Initialize font for drawing text
 
     def load_key_bindings(self):
         if os.path.exists("key_bindings.json"):
@@ -91,13 +94,30 @@ class Player:
         # Remove lasers that have gone off the screen
         self.lasers = [laser for laser in self.lasers if laser.y > 0]
     
-    def default_shot(self): 
+    def laser_shot(self):
         current_time = pg.time.get_ticks()
         
         if current_time - self.last_time >= self.cooldown:
-            new_laser = laser.Laser(self.x + self.width / 2 - 2, self.y)  # Adjust x position for laser center
-            self.lasers.append(new_laser)
+            if self.triple_shot and self.triple_shot_ammo > 0:
+                # Shoot three lasers
+                new_laser1 = laser.Laser(self.x + self.width / 2 - 15, self.y)  # Left laser
+                new_laser2 = laser.Laser(self.x + self.width / 2 - 2, self.y)   # Center laser
+                new_laser3 = laser.Laser(self.x + self.width / 2 + 11, self.y)  # Right laser
+                self.lasers.extend([new_laser1, new_laser2, new_laser3])
+                self.triple_shot_ammo -= 1
+                if self.triple_shot_ammo == 0:
+                    self.triple_shot = False
+            else:
+                # Shoot single laser
+                new_laser = laser.Laser(self.x + self.width / 2 - 2, self.y)  # Adjust x position for laser center
+                self.lasers.append(new_laser)
             self.last_time = current_time
+
+    def update(self):
+        for laser in self.lasers:
+            laser.move()
+            if laser.y < 0:
+                self.lasers.remove(laser)
 
     def generate_lives(self):
         self.lives.clear()
@@ -111,3 +131,9 @@ class Player:
         font = pg.font.Font(None, 36)
         text = font.render(f"Scores: {self.scores}", True, (255, 255, 255))
         self.screen.blit(text, (int(window.WIDTH/2)-50, 10))
+
+    def draw_ammo(self):
+        if self.triple_shot:
+            ammo_text = self.font.render(f"{self.triple_shot_ammo}", True, (255, 255, 255))
+            text_rect = ammo_text.get_rect(topright=(self.screen.get_width() - 10, 10))
+            self.screen.blit(ammo_text, text_rect)

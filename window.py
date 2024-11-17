@@ -7,6 +7,8 @@ import menu
 import player
 import manage_enemies
 import collisions_handling
+from leaderboard import Leaderboard
+from menu import LeaderboardMenu
 
 # Constants
 WIDTH = 960
@@ -24,6 +26,7 @@ class Window:
     def __init__(self):
         self._initialize_pygame()
         self._load_assets()
+        self.leaderboard = Leaderboard()  # Initialize leaderboard here
         self._initialize_game_states()
         self.run()
     
@@ -56,6 +59,7 @@ class Window:
         self.in_controls_menu = False
         self.in_difficulty_menu = False
         self.in_gameover_menu = False
+        self.in_leaderboard_menu = False
         self.selected_difficulty = None
 
         # Menus
@@ -65,7 +69,8 @@ class Window:
         self.sound_menu = menu.SoundMenu(self.screen, self.player)
         self.controls_menu = menu.ControlsMenu(self.screen, self.player)
         self.difficulty_menu = menu.DifficultyMenu(self.screen, self.player)
-        self.gameover_menu = menu.GameOver(self.screen)
+        self.gameover_menu = menu.GameOver(self.screen, self.leaderboard)  # Pass leaderboard here
+        self.leaderboard_menu = menu.LeaderboardMenu(self.screen, self.leaderboard)
 
     def run(self):
         clock = pg.time.Clock()
@@ -89,6 +94,8 @@ class Window:
             self._handle_menu("difficulty")
         elif self.in_gameover_menu:
             self._handle_menu("gameover")
+        elif self.in_leaderboard_menu:
+            self._handle_menu("leaderboard")
         else:
             self._update_game()
     
@@ -100,7 +107,8 @@ class Window:
             "sound": self.sound_menu,
             "controls": self.controls_menu,
             "difficulty": self.difficulty_menu,
-            "gameover": self.gameover_menu
+            "gameover": self.gameover_menu,
+            "leaderboard": self.leaderboard_menu
         }
         menu = menu_map[menu_type]
         if menu_type == "gameover":
@@ -111,7 +119,10 @@ class Window:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.running = False
-            action = menu.handle_input(event)
+            if menu_type == "gameover":
+                action = menu.handle_input(event, self.player.scores)  # Pass the score to handle_input
+            else:
+                action = menu.handle_input(event)
             self._process_menu_action(menu_type, action)
 
         pg.display.update()
@@ -122,6 +133,8 @@ class Window:
                 self.in_start_menu = False
             elif action == "Options":
                 self._open_menu("options")
+            elif action == "Leaderboard":
+                self._open_menu("leaderboard")
             elif action == "Quit":
                 self.running = False
         elif menu_type == "pause":
@@ -139,10 +152,11 @@ class Window:
                 self._open_menu(action.lower())
         elif menu_type in ["sound", "controls", "difficulty"]:
             self._handle_submenu_action(menu_type, action)
-        elif menu_type == "gameover" and action == "Back to Start Menu":
-            self._reset_game()
+        elif menu_type == "gameover" and action == "Show Leaderboard":
+            self._open_menu("leaderboard")
+        elif menu_type == "leaderboard" and action == "Back to Start Menu":
             self._open_menu("start")
-
+    
     def _handle_submenu_action(self, menu_type, action):
         if action == "Return":
             self._open_menu("options")
@@ -209,13 +223,14 @@ class Window:
         self.enemy_manager.adjust_difficulty(self.player.scores)  # Adjust difficulty based on score
         self.enemy_manager.generate_enemies()  # Generate enemies including boss
         if keys[self.player.key_bindings["Shoot"]]:
-            self.player.default_shot()
+            self.player.laser_shot()
             self._play_sound(SHOT_SOUND)
         self._handle_enemy_shooting()
         
     def _render_screen(self):
         self.screen.blit(self.player.image, (self.player.x, self.player.y))
         self.player.draw()
+        self.player.draw_ammo()  # Draw triple shot ammo
         self.player.generate_lives()
         self.player.increase_scores()
         self.enemy_manager.generate_enemies()

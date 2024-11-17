@@ -24,3 +24,12 @@ class ExtraLives(Pickup):
         if player.max_lives < 5:  # Limit the maximum lives to 5
             player.max_lives += self.value
         self.kill()
+
+class TripleShots(Pickup):
+    def __init__(self, x, y):
+        super().__init__(x, y, "triple_shots")
+
+    def apply(self, player):
+        player.triple_shot = True
+        player.triple_shot_ammo = 10  # Set triple shot ammo to 10
+        self.kill()

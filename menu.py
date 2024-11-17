@@ -141,51 +141,51 @@ class DifficultyMenu(Menu):
             self.options[0] = f"Set Difficulty: {self.difficulties[self.index]}"
         return None
 
-class GameOver:
-    def __init__(self, screen):
+class LeaderboardMenu:
+    def __init__(self, screen, leaderboard):
         self.screen = screen
-        self.font = pg.font.Font(None, 74)
-        self.small_font = pg.font.Font(None, 36)
-        self.start_time = None
+        self.leaderboard = leaderboard
+        self.font = pg.font.Font(None, 36)
 
-    def draw(self, score):
-        if self.start_time is None:
-            self.start_time = time.time()
-        
+    def draw(self):
         self.screen.fill((0, 0, 0))
-        self.render_text("Game Over", self.font, (255, 0, 0), y_offset=window.HEIGHT // 3)
-        self.render_text(f"Score: {score}", self.small_font, (255, 255, 255), y_offset=window.HEIGHT // 2)
-        self.render_text("Press any key to return to the start menu", self.small_font, (255, 255, 255), y_offset=window.HEIGHT // 2 + 50)
+        self.render_text("Leaderboard", self.font, (255, 255, 255), y_offset=50)
+        for i, entry in enumerate(self.leaderboard.get_scores()):
+            self.render_text(f"{i + 1}. {entry['name']} - {entry['score']}", self.font, (255, 255, 255), y_offset=100 + i * 40)
+        self.render_text("Press any key to return to the start menu", self.font, (255, 255, 255), y_offset=500)
 
     def render_text(self, text, font, color, y_offset):
         rendered_text = font.render(text, True, color)
         self.screen.blit(rendered_text, (window.WIDTH // 2 - rendered_text.get_width() // 2, y_offset))
 
     def handle_input(self, event):
-        if self.start_time and time.time() - self.start_time >= 2 and event.type == pg.KEYDOWN:
+        if event.type == pg.KEYDOWN:
             return "Back to Start Menu"
+        return None
+
+class GameOver:
+    def __init__(self, screen, leaderboard):
+        self.screen = screen
+        self.leaderboard = leaderboard
+        self.entered_name = ""
+        self.font = pg.font.Font(None, 36)
+
+    def draw(self, score):
+        self.screen.fill((0, 0, 0))
+        text = self.font.render("Game Over! Enter your name:", True, (255, 255, 255))
+        self.screen.blit(text, (100, 100))
+        name_text = self.font.render(self.entered_name, True, (255, 255, 255))
+        self.screen.blit(name_text, (100, 150))
+        pg.display.flip()
+
+    def handle_input(self, event, score):
+        if event.type == pg.KEYDOWN:
+            if event.key == pg.K_RETURN:
+                self.leaderboard.add_score(self.entered_name, score)
+                return "Show Leaderboard"
+            elif event.key == pg.K_BACKSPACE:
+                self.entered_name = self.entered_name[:-1]
+            else:
+                self.entered_name += event.unicode
         return None
     
-    def __init__(self, screen):
-        self.screen = screen
-        self.font = pg.font.Font(None, 74)
-        self.small_font = pg.font.Font(None, 36)
-        self.start_time = None
-
-    def draw(self, score):
-        if self.start_time is None:
-            self.start_time = time.time()
-        
-        self.screen.fill((0, 0, 0))
-        self.render_text("Game Over", self.font, (255, 0, 0), y_offset=window.HEIGHT // 3)
-        self.render_text(f"Score: {score}", self.small_font, (255, 255, 255), y_offset=window.HEIGHT // 2)
-        self.render_text("Press any key to return to the start menu", self.small_font, (255, 255, 255), y_offset=window.HEIGHT // 2 + 50)
-
-    def render_text(self, text, font, color, y_offset):
-        rendered_text = font.render(text, True, color)
-        self.screen.blit(rendered_text, (window.WIDTH // 2 - rendered_text.get_width() // 2, y_offset))
-
-    def handle_input(self, event):
-        if self.start_time and time.time() - self.start_time >= 2 and event.type == pg.KEYDOWN:
-            return "Back to Start Menu"
-        return None
