@@ -1,14 +1,11 @@
 import pygame as pg
 from pygame import mixer
 
-from enemy import BossEnemy
 import manage_pickups
 import menu
 import player
 import manage_enemies
-import collisions_handling
 from leaderboard import Leaderboard
-from menu import LeaderboardMenu
 
 # Constants
 WIDTH = 960
@@ -17,6 +14,9 @@ FPS = 60
 BACKGROUND_IMG = "assets/background.jpg"
 BACKGROUND_MUSIC = 'sounds/bg.mp3'
 SHOT_SOUND = 'sounds/shot.wav'
+DAMAGE_SOUND = 'sounds/damage_taken.mp3'
+MOVE_SOUND = 'sounds/ST0E_U0_00004.wav'
+SELECT_SOUND = 'sounds/ST0E_U0_00014.wav'
 sound_settings = {
     'volume': 50,
     'sound_on': True
@@ -28,6 +28,7 @@ class Window:
         self._load_assets()
         self.leaderboard = Leaderboard()  # Initialize leaderboard here
         self._initialize_game_states()
+        self._update_sound_volumes()  # Ensure sound volumes are updated at the start
         self.run()
     
     def _initialize_pygame(self):
@@ -49,6 +50,10 @@ class Window:
         self.player = player.Player(self.screen)
         self.enemy_manager = manage_enemies.ManageEnemies(self.screen, self.player)  # Pass player instance
         self.pickup_manager = manage_pickups.ManagePickups(self.screen)  # Initialize pickup manager
+
+        # Initialize move and select sounds
+        self.move_sound = mixer.Sound(MOVE_SOUND)
+        self.select_sound = mixer.Sound(SELECT_SOUND)
     
     def _initialize_game_states(self):
         self.running = True
@@ -63,13 +68,13 @@ class Window:
         self.selected_difficulty = None
 
         # Menus
-        self.start_menu = menu.StartMenu(self.screen, self.player)
-        self.pause_menu = menu.PauseMenu(self.screen, self.player)
-        self.options_menu = menu.OptionsMenu(self.screen, self.player)
-        self.sound_menu = menu.SoundMenu(self.screen, self.player)
-        self.controls_menu = menu.ControlsMenu(self.screen, self.player)
-        self.difficulty_menu = menu.DifficultyMenu(self.screen, self.player)
-        self.gameover_menu = menu.GameOver(self.screen, self.leaderboard)  # Pass leaderboard here
+        self.start_menu = menu.StartMenu(self.screen, self.player, self)
+        self.pause_menu = menu.PauseMenu(self.screen, self.player, self)
+        self.options_menu = menu.OptionsMenu(self.screen, self.player, self)
+        self.sound_menu = menu.SoundMenu(self.screen, self.player, self)
+        self.controls_menu = menu.ControlsMenu(self.screen, self.player, self)
+        self.difficulty_menu = menu.DifficultyMenu(self.screen, self.player, self)
+        self.gameover_menu = menu.GameOver(self.screen, self.leaderboard)
         self.leaderboard_menu = menu.LeaderboardMenu(self.screen, self.leaderboard)
 
     def run(self):
@@ -112,7 +117,7 @@ class Window:
         }
         menu = menu_map[menu_type]
         if menu_type == "gameover":
-            menu.draw(self.player.scores)  # Pass the score to the GameOver menu
+            menu.draw(self.player.logic.scores)  # Pass the score to the GameOver menu
         else:
             menu.draw()  # Call draw with no arguments for other menus
 
@@ -120,7 +125,7 @@ class Window:
             if event.type == pg.QUIT:
                 self.running = False
             if menu_type == "gameover":
-                action = menu.handle_input(event, self.player.scores)  # Pass the score to handle_input
+                action = menu.handle_input(event, self.player.logic.scores)  # Pass the score to handle_input
             else:
                 action = menu.handle_input(event)
             self._process_menu_action(menu_type, action)
@@ -143,8 +148,6 @@ class Window:
             elif action == "Back to Start Menu":
                 self._reset_game()
                 self._open_menu("start")
-            elif action == "Options":
-                self._open_menu("options")
         elif menu_type == "options":
             if action == "Back to Start Menu":
                 self._open_menu("start")
@@ -156,6 +159,7 @@ class Window:
             self._open_menu("leaderboard")
         elif menu_type == "leaderboard" and action == "Back to Start Menu":
             self._open_menu("start")
+            self._reset_game()
     
     def _handle_submenu_action(self, menu_type, action):
         if action == "Return":
@@ -173,12 +177,11 @@ class Window:
                 sound_settings['sound_on'] = False
                 mixer.music.pause()  # Pause music when turning sound off
             
-            # Apply volume settings globally
-            mixer.music.set_volume(sound_settings['volume'] / 100.0)
+        self._update_sound_volumes()  # Update the sound volumes
     
     def _open_menu(self, menu_name):
         setattr(self, f'in_{menu_name}_menu', True)
-        for attr in ["in_start_menu", "in_pause_menu", "in_options_menu", "in_sound_menu", "in_controls_menu", "in_difficulty_menu", "in_gameover_menu"]:
+        for attr in ["in_start_menu", "in_pause_menu", "in_options_menu", "in_sound_menu", "in_controls_menu", "in_difficulty_menu", "in_gameover_menu", "in_leaderboard_menu"]:
             if attr != f'in_{menu_name}_menu':
                 setattr(self, attr, False)
     
@@ -188,24 +191,19 @@ class Window:
         self._initialize_game_states()
 
     def _update_game(self):
-        if not collisions_handling.check_collisions(self.player, self.enemy_manager.enemies, self.enemy_manager.meteors, self.enemy_manager.enemy_lasers, self.pickup_manager):
+        if not self.player.logic.check_collisions(self.enemy_manager.enemies, self.enemy_manager.meteors, self.enemy_manager.enemy_lasers, self.pickup_manager):
             self._open_menu("gameover")
         
         self._scroll_background()
         self._handle_events()
         self._update_movements()
         self._render_screen()
+        self._update_sound_volumes()
     
     def _scroll_background(self):
-        # Check if a boss is present
-        #boss_present = any(isinstance(enemy, BossEnemy) for enemy in self.enemy_manager.enemies)
-        
-        #if not boss_present:
         self.background_y = (self.background_y + self.background_y_speed) % HEIGHT
         self.screen.blit(self.background, (0, self.background_y))
         self.screen.blit(self.background, (0, self.background_y - HEIGHT))
-        #else:
-        #    self.screen.blit(self.background, (0, self.background_y))
     
     def _handle_events(self):
         for event in pg.event.get():
@@ -220,7 +218,7 @@ class Window:
         self.enemy_manager.move_enemies()
         self.enemy_manager.move_lasers()
         self.pickup_manager.update_pickups()  # Update pickups
-        self.enemy_manager.adjust_difficulty(self.player.scores)  # Adjust difficulty based on score
+        self.enemy_manager.adjust_difficulty(self.player.logic.scores)  # Adjust difficulty based on score
         self.enemy_manager.generate_enemies()  # Generate enemies including boss
         if keys[self.player.key_bindings["Shoot"]]:
             self.player.laser_shot()
@@ -228,7 +226,7 @@ class Window:
         self._handle_enemy_shooting()
         
     def _render_screen(self):
-        self.screen.blit(self.player.image, (self.player.x, self.player.y))
+        self.screen.blit(self.player.image, (self.player.logic.x, self.player.logic.y))
         self.player.draw()
         self.player.draw_ammo()  # Draw triple shot ammo
         self.player.generate_lives()
@@ -248,3 +246,11 @@ class Window:
         sound = mixer.Sound(audio)
         sound.set_volume(sound_settings['volume'] / 100.0 if sound_settings["sound_on"] else 0)  # Use the global volume setting
         sound.play()
+
+    def _update_sound_volumes(self, volume=None):
+        if volume is None:
+            volume = sound_settings['volume'] / 100.0 if sound_settings['sound_on'] else 0
+        mixer.music.set_volume(volume)
+        self.player.logic.update_sound_volumes(volume)
+        self.move_sound.set_volume(volume)
+        self.select_sound.set_volume(volume)

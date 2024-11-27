@@ -1,18 +1,20 @@
 import pygame as pg
 from pygame import mixer
 import window
-import time
 
 class Menu:
-    def __init__(self, screen, options, player, custom_height=0):
+    def __init__(self, screen, options, player, window_instance, custom_height=0):
         self.screen = screen
         self.font = pg.font.Font(None, 50)
         self.options = options
         self.selected = 0
         self.custom_height = custom_height
-        self.move_sound = pg.mixer.Sound('sounds/ST0E_U0_00004.wav')
-        self.select_sound = pg.mixer.Sound('sounds/ST0E_U0_00014.wav')
         self.player = player  # Store the player instance
+        self.window_instance = window_instance  # Store the Window instance
+        self.update_sound_volumes(window.sound_settings['volume'] / 100.0)  # Update the sound volumes
+
+    def update_sound_volumes(self, volume):
+        self.window_instance._update_sound_volumes(volume)  # Call the method to update global sound volumes
 
     def draw(self):
         self.screen.fill((0, 0, 0))
@@ -27,32 +29,32 @@ class Menu:
             if event.key == pg.K_UP:
                 self.selected = (self.selected - 1) % len(self.options)
                 if window.sound_settings['sound_on']:
-                    self.move_sound.play()
+                    self.window_instance.move_sound.play()
             elif event.key == pg.K_DOWN:
                 self.selected = (self.selected + 1) % len(self.options)
                 if window.sound_settings['sound_on']:
-                    self.move_sound.play()
+                    self.window_instance.move_sound.play()
             elif event.key == self.player.key_bindings["Pause"]:  # Use the player's key binding for selecting an option
                 if window.sound_settings['sound_on']:
-                    self.select_sound.play()
+                    self.window_instance.select_sound.play()
                 return self.options[self.selected]
         return None
 
 class StartMenu(Menu):
-    def __init__(self, screen, player):
-        super().__init__(screen, ["Start Game", "Options", "Quit"], player)
+    def __init__(self, screen, player, window_instance):
+        super().__init__(screen, ["Start Game", "Options", "Quit"], player, window_instance)
 
 class PauseMenu(Menu):
-    def __init__(self, screen, player):
-        super().__init__(screen, ["Resume Game", "Options", "Back to Start Menu"], player)
+    def __init__(self, screen, player, window_instance):
+        super().__init__(screen, ["Resume Game", "Back to Start Menu"], player, window_instance)
 
 class OptionsMenu(Menu):
-    def __init__(self, screen, player):
-        super().__init__(screen, ["Sound", "Controls", "Difficulty", "Back to Start Menu"], player, custom_height=50)
+    def __init__(self, screen, player, window_instance):
+        super().__init__(screen, ["Sound", "Controls", "Difficulty", "Back to Start Menu"], player, window_instance, custom_height=50)
 
 class SoundMenu(Menu):
-    def __init__(self, screen, player):
-        super().__init__(screen, [f"Volume: {window.sound_settings['volume']}", f"Sound On: {window.sound_settings['sound_on']}", "Return"], player)
+    def __init__(self, screen, player, window_instance):
+        super().__init__(screen, [f"Volume: {window.sound_settings['volume']}", f"Sound On: {window.sound_settings['sound_on']}", "Return"], player, window_instance)
         self.volume = window.sound_settings['volume']
         self.sound_on = window.sound_settings['sound_on']
 
@@ -77,7 +79,7 @@ class SoundMenu(Menu):
             self.options[0] = f"Volume: {self.volume}"
             window.sound_settings['volume'] = self.volume
             # Apply volume change immediately
-            mixer.music.set_volume(self.volume / 100.0)
+            self.update_sound_volumes(self.volume / 100.0)
 
         elif self.selected == 1:  # Toggle sound on/off
             if key in [pg.K_LEFT, pg.K_RIGHT]:
@@ -89,21 +91,15 @@ class SoundMenu(Menu):
 
             if self.sound_on:
                 mixer.music.unpause()
-                self.move_sound.set_volume(1)
-                self.select_sound.set_volume(1)
-                self.player.damage_sound.set_volume(1)
             else:
                 mixer.music.pause()
-                self.move_sound.set_volume(0)
-                self.select_sound.set_volume(0)
-                self.player.damage_sound.set_volume(0)
 
 class ControlsMenu(Menu):
-    def __init__(self, screen, player):
+    def __init__(self, screen, player, window_instance):
         self.player = player
         self.key_bindings = player.key_bindings.copy()
         self.reassigning_key = None
-        super().__init__(screen, self.build_options(), player, custom_height=150)
+        super().__init__(screen, self.build_options(), player, window_instance, custom_height=150)
 
     def build_options(self):
         return [f"{action} - {pg.key.name(key)}" for action, key in self.key_bindings.items()] + ["Return"]
@@ -126,8 +122,8 @@ class ControlsMenu(Menu):
 class DifficultyMenu(Menu):
     DIFFICULTIES = ["Easy", "Normal", "Hard"]
 
-    def __init__(self, screen, player):
-        super().__init__(screen, ["Set Difficulty: Normal", "Return"], player)
+    def __init__(self, screen, player, window_instance):
+        super().__init__(screen, ["Set Difficulty: Normal", "Return"], player, window_instance)
         self.difficulties = ["Normal", "Hard"]
         self.index = 0
 
@@ -188,4 +184,3 @@ class GameOver:
             else:
                 self.entered_name += event.unicode
         return None
-    

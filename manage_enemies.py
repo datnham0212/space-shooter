@@ -1,7 +1,7 @@
 import pygame as pg
 import random
 import window
-from enemy import BasicEnemy, FastEnemy, StrongEnemy, Meteor, BossEnemy
+from enemies import BasicEnemy, FastEnemy, StrongEnemy, Meteor, BossEnemy
 
 class ManageEnemies:
     def __init__(self, screen, player, difficulty="Normal"):
@@ -36,7 +36,7 @@ class ManageEnemies:
                 self.previous_spawn_time = current_spawn_time
 
         # Spawn boss if score threshold is met
-        if self.player.scores % 1000 == 0 and self.player.scores != 0 and not boss_present:
+        if self.player.logic.scores % 1000 == 0 and self.player.logic.scores != 0 and not boss_present:
             self.spawn_boss()
 
     def _set_difficulty_parameters(self):
