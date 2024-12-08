@@ -11,7 +11,7 @@ class Menu:
         self.custom_height = custom_height
         self.player = player  # Store the player instance
         self.window_instance = window_instance  # Store the Window instance
-        self.update_sound_volumes(window.sound_settings['volume'] / 100.0)  # Update the sound volumes
+        self.update_sound_volumes(window_instance.sound_settings['volume'] / 100.0)  # Update the sound volumes
 
     def update_sound_volumes(self, volume):
         self.window_instance._update_sound_volumes(volume)  # Call the method to update global sound volumes
@@ -28,14 +28,14 @@ class Menu:
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_UP:
                 self.selected = (self.selected - 1) % len(self.options)
-                if window.sound_settings['sound_on']:
+                if self.window_instance.sound_settings['sound_on']:
                     self.window_instance.move_sound.play()
             elif event.key == pg.K_DOWN:
                 self.selected = (self.selected + 1) % len(self.options)
-                if window.sound_settings['sound_on']:
+                if self.window_instance.sound_settings['sound_on']:
                     self.window_instance.move_sound.play()
             elif event.key == self.player.key_bindings["Pause"]:  # Use the player's key binding for selecting an option
-                if window.sound_settings['sound_on']:
+                if self.window_instance.sound_settings['sound_on']:
                     self.window_instance.select_sound.play()
                 return self.options[self.selected]
         return None
@@ -54,9 +54,9 @@ class OptionsMenu(Menu):
 
 class SoundMenu(Menu):
     def __init__(self, screen, player, window_instance):
-        super().__init__(screen, [f"Volume: {window.sound_settings['volume']}", f"Sound On: {window.sound_settings['sound_on']}", "Return"], player, window_instance)
-        self.volume = window.sound_settings['volume']
-        self.sound_on = window.sound_settings['sound_on']
+        super().__init__(screen, [f"Volume: {window_instance.sound_settings['volume']}", f"Sound On: {window_instance.sound_settings['sound_on']}", "Return"], player, window_instance)
+        self.volume = window_instance.sound_settings['volume']
+        self.sound_on = window_instance.sound_settings['sound_on']
 
     def handle_input(self, event):
         result = super().handle_input(event)
@@ -77,7 +77,7 @@ class SoundMenu(Menu):
 
             # Update the menu text and global sound settings
             self.options[0] = f"Volume: {self.volume}"
-            window.sound_settings['volume'] = self.volume
+            self.window_instance.sound_settings['volume'] = self.volume
             # Apply volume change immediately
             self.update_sound_volumes(self.volume / 100.0)
 
@@ -87,12 +87,14 @@ class SoundMenu(Menu):
 
             # Update the menu text and global sound settings
             self.options[1] = f"Sound On: {self.sound_on}"
-            window.sound_settings['sound_on'] = self.sound_on
+            self.window_instance.sound_settings['sound_on'] = self.sound_on
 
             if self.sound_on:
                 mixer.music.unpause()
             else:
                 mixer.music.pause()
+
+        self.window_instance.save_settings()  # Save settings
 
 class ControlsMenu(Menu):
     def __init__(self, screen, player, window_instance):
@@ -124,8 +126,9 @@ class DifficultyMenu(Menu):
 
     def __init__(self, screen, player, window_instance):
         super().__init__(screen, ["Set Difficulty: Normal", "Return"], player, window_instance)
-        self.difficulties = ["Normal", "Hard"]
-        self.index = 0
+        self.difficulties = ["Easy", "Normal", "Hard"]
+        self.index = self.difficulties.index(window_instance.selected_difficulty)
+        self.options[0] = f"Set Difficulty: {self.difficulties[self.index]}"
 
     def handle_input(self, event):
         result = super().handle_input(event)
@@ -135,6 +138,8 @@ class DifficultyMenu(Menu):
         if event.type == pg.KEYDOWN and event.key in [pg.K_LEFT, pg.K_RIGHT]:
             self.index = (self.index + (1 if event.key == pg.K_RIGHT else -1)) % len(self.difficulties)
             self.options[0] = f"Set Difficulty: {self.difficulties[self.index]}"
+            self.window_instance.selected_difficulty = self.difficulties[self.index]
+            self.window_instance.save_settings()  # Save settings
         return None
 
 class LeaderboardMenu:

@@ -8,12 +8,13 @@ class Player:
     DAMAGE_SOUND_PATH = "sounds/damage_taken.mp3"
     FONT_SIZE = 36
 
-    def __init__(self, screen):
+    def __init__(self, screen, window_instance):
         self.screen = screen
+        self.window_instance = window_instance
         self.image = pg.image.load(self.IMAGE_PATH)
         self.logic = ManagePlayer()
         self.damage_sound = pg.mixer.Sound(self.DAMAGE_SOUND_PATH)
-        self.damage_sound.set_volume(window.sound_settings['volume'] / 100.0 if window.sound_settings["sound_on"] else 0)
+        self.damage_sound.set_volume(self.window_instance.sound_settings['volume'] / 100.0 if self.window_instance.sound_settings["sound_on"] else 0)
         self.font = pg.font.Font(None, self.FONT_SIZE)
         self.key_bindings = self.logic.key_bindings  # Expose key_bindings from ManagePlayer
 

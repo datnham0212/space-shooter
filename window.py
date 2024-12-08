@@ -1,5 +1,7 @@
 import pygame as pg
 from pygame import mixer
+import json
+import os
 
 import manage_pickups
 import menu
@@ -17,14 +19,15 @@ SHOT_SOUND = 'sounds/shot.wav'
 DAMAGE_SOUND = 'sounds/damage_taken.mp3'
 MOVE_SOUND = 'sounds/ST0E_U0_00004.wav'
 SELECT_SOUND = 'sounds/ST0E_U0_00014.wav'
-sound_settings = {
-    'volume': 50,
-    'sound_on': True
-}
 
 class Window:
     def __init__(self):
+        self.sound_settings = {
+            'volume': 50,
+            'sound_on': True
+        }
         self._initialize_pygame()
+        self.load_settings()  # Load settings before initializing game states
         self._load_assets()
         self.leaderboard = Leaderboard()  # Initialize leaderboard here
         self._initialize_game_states()
@@ -47,8 +50,8 @@ class Window:
         mixer.music.set_volume(0.5)
         mixer.music.play(-1)
         
-        self.player = player.Player(self.screen)
-        self.enemy_manager = manage_enemies.ManageEnemies(self.screen, self.player)  # Pass player instance
+        self.player = player.Player(self.screen, self)  # Pass the Window instance
+        self.enemy_manager = manage_enemies.ManageEnemies(self.screen, self.player, difficulty=self.selected_difficulty or "Normal")  # Pass player instance
         self.pickup_manager = manage_pickups.ManagePickups(self.screen)  # Initialize pickup manager
 
         # Initialize move and select sounds
@@ -65,7 +68,7 @@ class Window:
         self.in_difficulty_menu = False
         self.in_gameover_menu = False
         self.in_leaderboard_menu = False
-        self.selected_difficulty = None
+        self.selected_difficulty = self.selected_difficulty or "Normal"
 
         # Menus
         self.start_menu = menu.StartMenu(self.screen, self.player, self)
@@ -166,15 +169,15 @@ class Window:
             self._open_menu("options")
         elif menu_type == "difficulty" and action:
             self.selected_difficulty = action.split(": ")[-1]
-            self.enemy_manager = manage_enemies.ManageEnemies(self.screen, difficulty=self.selected_difficulty)
+            self.enemy_manager = manage_enemies.ManageEnemies(self.screen, self.player, difficulty=self.selected_difficulty)
         elif menu_type == "controls" and action:
             pass
         elif menu_type == "sound" and action:
             if action == "On":
-                sound_settings['sound_on'] = True
+                self.sound_settings['sound_on'] = True
                 mixer.music.unpause()  # Unpause music when turning sound on
             elif action == "Off":
-                sound_settings['sound_on'] = False
+                self.sound_settings['sound_on'] = False
                 mixer.music.pause()  # Pause music when turning sound off
             
         self._update_sound_volumes()  # Update the sound volumes
@@ -186,7 +189,7 @@ class Window:
                 setattr(self, attr, False)
     
     def _reset_game(self):
-        self.player = player.Player(self.screen)
+        self.player = player.Player(self.screen, self)  # Pass the Window instance
         self.enemy_manager = manage_enemies.ManageEnemies(self.screen, self.player, difficulty=self.selected_difficulty or "Normal")
         self._initialize_game_states()
 
@@ -244,13 +247,33 @@ class Window:
 
     def _play_sound(self, audio):
         sound = mixer.Sound(audio)
-        sound.set_volume(sound_settings['volume'] / 100.0 if sound_settings["sound_on"] else 0)  # Use the global volume setting
+        sound.set_volume(self.sound_settings['volume'] / 100.0 if self.sound_settings["sound_on"] else 0)  # Use the global volume setting
         sound.play()
 
     def _update_sound_volumes(self, volume=None):
         if volume is None:
-            volume = sound_settings['volume'] / 100.0 if sound_settings['sound_on'] else 0
+            volume = self.sound_settings['volume'] / 100.0 if self.sound_settings['sound_on'] else 0
         mixer.music.set_volume(volume)
         self.player.logic.update_sound_volumes(volume)
         self.move_sound.set_volume(volume)
         self.select_sound.set_volume(volume)
+
+    def load_settings(self):
+        if os.path.exists('settings.json'):
+            with open('settings.json', 'r') as file:
+                settings = json.load(file)
+                self.sound_settings['volume'] = settings.get('volume', 50)
+                self.sound_settings['sound_on'] = settings.get('sound_on', True)
+                self.selected_difficulty = settings.get('difficulty', 'Normal')
+        else:
+            self.sound_settings = {'volume': 50, 'sound_on': True}
+            self.selected_difficulty = 'Normal'
+
+    def save_settings(self):
+        settings = {
+            'volume': self.sound_settings['volume'],
+            'sound_on': self.sound_settings['sound_on'],
+            'difficulty': self.selected_difficulty
+        }
+        with open('settings.json', 'w') as file:
+            json.dump(settings, file)
