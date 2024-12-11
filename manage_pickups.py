@@ -9,11 +9,11 @@ class ManagePickups:
 
     def create_pickup(self, x, y, pickup_type="extra_lives"):
         if pickup_type == "extra_lives":
-            # if random.random() < 0.2:  # 20% chance to create an extra life pickup
+            if random.random() < 0.2:  # 20% chance to create an extra life pickup
                 pickup = ExtraLives(x, y)
         
         elif pickup_type == "triple_shot":
-            # if random.random() < 0.5:  # 50% chance to create a triple shot pickup
+            if random.random() < 0.5:  # 50% chance to create a triple shot pickup
                 pickup = TripleShots(x, y)
         
         self.pickups.add(pickup)
