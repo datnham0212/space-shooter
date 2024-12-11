@@ -12,12 +12,14 @@ class Menu:
         self.player = player  # Store the player instance
         self.window_instance = window_instance  # Store the Window instance
         self.update_sound_volumes(window_instance.sound_settings['volume'] / 100.0)  # Update the sound volumes
+        self.background = pg.image.load("assets/startmenu.png")  # Load the background image
+        self.background = pg.transform.scale(self.background, (window.WIDTH, window.HEIGHT))  # Scale the background image
 
     def update_sound_volumes(self, volume):
         self.window_instance._update_sound_volumes(volume)  # Call the method to update global sound volumes
 
     def draw(self):
-        self.screen.fill((0, 0, 0))
+        self.screen.blit(self.background, (0, 0))  # Draw the background image
         for i, option in enumerate(self.options):
             color = (255, 255, 255) if i == self.selected else (100, 100, 100)
             text = self.font.render(option, True, color)
