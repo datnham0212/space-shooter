@@ -8,6 +8,7 @@ class ManagePickups:
         self.pickups = pg.sprite.Group()
 
     def create_pickup(self, x, y, pickup_type="extra_lives"):
+        pickup = None  # Initialize pickup to None
         if pickup_type == "extra_lives":
             if random.random() < 0.2:  # 20% chance to create an extra life pickup
                 pickup = ExtraLives(x, y)
@@ -16,7 +17,8 @@ class ManagePickups:
             if random.random() < 0.5:  # 50% chance to create a triple shot pickup
                 pickup = TripleShots(x, y)
         
-        self.pickups.add(pickup)
+        if pickup:  # Check if pickup is not None
+            self.pickups.add(pickup)
 
     def update_pickups(self):
         self.pickups.update()

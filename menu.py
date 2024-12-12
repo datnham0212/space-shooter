@@ -114,7 +114,7 @@ class ControlsMenu(Menu):
                 self.key_bindings[self.reassigning_key] = event.key
                 self.reassigning_key = None
                 self.options = self.build_options()
-                self.player.update_key_bindings(self.key_bindings)  # Update player key bindings and save to JSON
+                self.player.logic.update_key_bindings(self.key_bindings)  # Update player key bindings and save to JSON
             return None
 
         result = super().handle_input(event)
